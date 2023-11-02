@@ -28,7 +28,7 @@ services:
     networks:
       - my-network
   angular_app:
-    image: azzakouka/angular
+    image: azzakouka/angular-app
     container_name: devops_project_angular
     ports:
       - "4200:80"
