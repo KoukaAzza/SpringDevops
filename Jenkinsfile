@@ -27,26 +27,26 @@ pipeline {
             }
         }
         
-      /*  stage ('Jacoco Report') {
+        stage ('Jacoco Report') {
        steps {
          sh 'mvn jacoco:report'
        }
-    }*/
+    }
     
-   /* stage('Collect JaCoCo Coverage') {
+    stage('Collect JaCoCo Coverage') {
             steps{
-         //          jacoco(execPattern: '/target/jacoco.exec')
-   // }
-     //   }
+                   jacoco(execPattern: '**/target/jacoco.exec')
+    }
+        }
 
 
 //************************************* BUILD FRONTEND - ANGULAR (PASSED)***************************/
-             /*   stage('Checkout Frontend Repo') {
+                stage('Checkout Frontend Repo') {
                     steps {
                         script {
                             checkout([
                                 $class: 'GitSCM',
-                                branches: [[name: 'master']],
+                                branches: [[name: '*/master']],
                                 userRemoteConfigs: [[url: 'https://github.com/KoukaAzza/FrontDevops']]
                             ])
                         }
@@ -59,19 +59,19 @@ pipeline {
                         sh 'npm run ng build'
                     }
                 }
-*/
+
 //******************************** DOCKER BUILD AND PUSH IMAGES (PASSED)**************************/
 
 
                     //******************************** DOCKER BUILD AND PUSH BACKEND - SPRINGBOOT :latest  IMAGE
 
-          /*  stage('Build and Push Backend Image') {
+            stage('Build and Push Backend Image') {
                 steps {
                     script {
                         // Add the Git checkout step for the backend repository here
                         checkout([
                             $class: 'GitSCM',
-                            branches: [[name: '/master']],
+                            branches: [[name: '*/master']],
                             userRemoteConfigs: [[url: 'https://github.com/KoukaAzza/SpringDevops']]
                         ])
                         
@@ -87,10 +87,10 @@ pipeline {
                             backendImage.push()
                         }
                     }
-                }*/
+                }
 //**************************************** DEPLOY TO NEXUS (PASSED)******************************************/
 
-         /*      stage('Deploy to Nexus Repository') {
+               stage('Deploy to Nexus Repository') {
              steps {
                script {
                          // Add the Git checkout step for the backend repository here
@@ -108,17 +108,17 @@ pipeline {
              }
             }
            }
-         }*/
+         }
 
           //******************************** DOCKER BUILD AND PUSH FRONTEND - ANGULAR :frontend  IMAGE **********
 
-      /*  stage('Build and Push Frontend Image') {
+        stage('Build and Push Frontend Image') {
     steps {
         script {
             // Add the Git checkout step for the backend repository here
             checkout([
                 $class: 'GitSCM',
-                branches: [[name: '/master']],
+                branches: [[name: '*/master']],
                 userRemoteConfigs: [[url: 'https://github.com/KoukaAzza/FrontDevops']]
             ])
             
@@ -134,16 +134,16 @@ pipeline {
             backendImage.push()
         }
     }
-}*/
+}
 
 //*********************** DOCKER-COMPOSE (PASSED)****************
 
-/*stage('Run Docker Compose') {
+stage('Run Docker Compose') {
     steps {
          script {
              checkout([
                  $class: 'GitSCM',
-                 branches: [[name: '/master']], 
+                 branches: [[name: '*/master']], 
                  userRemoteConfigs: [[url: 'https://github.com/KoukaAzza/SpringDevops']]
              ])
 
@@ -151,7 +151,7 @@ pipeline {
             sh 'docker compose up -d' 
          }
      }
- }*/
+ }
 
         // stage('Run Docker Compose') {
         //   steps {
@@ -173,7 +173,7 @@ pipeline {
          }
 */
 
-  /*stage("SonarQube Analysis") {
+  stage("SonarQube Analysis") {
             steps {
                 // Set Java 11 for this stage
                 tool name: 'JAVAA_HOME', type: 'jdk'
@@ -191,7 +191,7 @@ pipeline {
                     }
                 }
             }
-        }*/
+        }
 
  
 //******************************* SENDING EMAIL - Success while Build pipeline Success / Failure while Build pipeline fails
