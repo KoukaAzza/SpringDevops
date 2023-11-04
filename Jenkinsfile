@@ -96,7 +96,7 @@ pipeline {
                          // Add the Git checkout step for the backend repository here
                          checkout([
                              $class: 'GitSCM',
-                             branches: [[name: '/master']],
+                             branches: [[name: '*/master']],
                              userRemoteConfigs: [[url: 'https://github.com/KoukaAzza/SpringDevops']]
                          ])
                         
