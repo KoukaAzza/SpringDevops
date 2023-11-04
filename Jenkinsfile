@@ -1,5 +1,9 @@
 pipeline {
     agent any
+    environment {
+        SUCCESSFUL_STAGES = ""
+        FAILED_STAGE = ""
+    }
     stages {
 
 //****************** BUILD BACKEND - SPRINGBOOT (PASSED)**************************/
@@ -22,6 +26,18 @@ pipeline {
                 }
             }
         }
+        
+      /*  stage ('Jacoco Report') {
+       steps {
+         sh 'mvn jacoco:report'
+       }
+    }*/
+    
+   /* stage('Collect JaCoCo Coverage') {
+            steps{
+         //          jacoco(execPattern: '/target/jacoco.exec')
+   // }
+     //   }
 
 
 //************************************* BUILD FRONTEND - ANGULAR (PASSED)***************************/
@@ -180,23 +196,28 @@ pipeline {
  
 //******************************* SENDING EMAIL - Success while Build pipeline Success / Failure while Build pipeline fails
 }
-    
-    post {
+  
+  post {
         success {
-            mail to: 'azza.kouka@esprit.tn',
-            subject: 'Jenkins Build pipeline: Success',
-            body: '''Your pipeline build success.
-                Build and push to Docker Hub successful.
-                Thank you, go and check it
-                Azza KOUKA'''
+            script {
+                SUCCESSFUL_STAGES = "${currentBuild.buildVariables.get('STAGE_NAME')}"
+                mail to: 'azza.kouka@esprit.tn',
+                subject: 'Jenkins Build pipeline: Success',
+                body: "Your pipeline build success. Stages built successfully: ${SUCCESSFUL_STAGES}. Thank you, go and check it\nAzza KOUKA"
+            }
         }
         failure {
-            mail to: 'azza.kouka@esprit.tn',
-            subject: 'Jenkins Build pipeline: Failure',
-            body: '''Your pipeline build failed.
-                Build or push to Docker Hub failed.
-                Thank you, please check
-                Azza KOUKA'''
+            script {
+                FAILED_STAGE = "${env.STAGE_NAME}"
+                mail to: 'azza.kouka@esprit.tn',
+                subject: 'Jenkins Build pipeline: Failure',
+                body: "Your pipeline build failed. The following stage failed: ${FAILED_STAGE}. Thank you, please check\nAzza KOUKA"
+            }
         }
     }
+  
+  
+  
+ 
+
 }
