@@ -112,10 +112,10 @@ pipeline {
                         }
             
                           // Build the backend Docker image
-                            def backendImage = docker.build('azzakouka/spring', '-f /var/lib/jenkins/workspace/Devops/Dockerfile .')
+                            def frontendImage = docker.build('azzakouka/spring', '-f /var/lib/jenkins/workspace/Devops/Dockerfile .')
                             
                             // Push the Docker image
-                            backendImage.push()
+                            frontendImage.push()
                         }
                     }
                 }
