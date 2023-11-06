@@ -1,53 +1,208 @@
 pipeline {
     agent any
-
     environment {
-        SONAR_CREDENTIALS = credentials('c96c8d35-a68e-4fdd-a1dc-04ed95ee56b0')
-        GIT_CREDENTIALS = credentials('6e1b6d0e-b9e5-4868-a709-7c1c5a16d124')
-        GIT_REPO_URL = "github.com/mehdiaroua/DevopsBack.git"
-        GIT_BRANCH = "main"
-        REPO_DIR = 'DevopsBack'
+        SUCCESSFUL_STAGES = ""
+        FAILED_STAGE = ""
     }
-
     stages {
-       stage('Clone my Branch from Git') {
+
+//************************************************* BUILD BACKEND - SPRINGBOOT (PASSED)**************************/
+        stage('Checkout Backend Repo') {
             steps {
                 script {
-                    // Check if the repository directory exists
-                    if (fileExists(REPO_DIR)) {
-                        // If the directory exists, update the existing repository
-                        dir(REPO_DIR) {
-                            sh 'git pull --rebase'
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: [[name: '*/master']],
+                        userRemoteConfigs: [[url: 'https://github.com/KoukaAzza/SpringDevops']]
+                    ])
+                }
+            }
+        }
+
+        stage('BUILD Backend- INSTALL') {
+            steps {
+                withEnv(["JAVA_HOME=${tool name: 'JAVA_HOME', type: 'jdk'}"]) {
+                    sh 'mvn clean install'
+                }
+            }
+        }
+/****************** *************************JACOCO (PASSED)************************************************/      
+        stage ('Jacoco Report') {
+       steps {
+         sh 'mvn jacoco:report'
+       }
+    }
+    
+    stage('JaCoCo Coverage') {
+            steps{
+                   jacoco(execPattern: '**/target/jacoco.exec')
+    }
+        } 
+
+//********************* ***************************SOANRQUBE ANALYSIS -- (PASSED)**********************
+       /*    stage("SonarQube analysis") {
+             agent any
+             steps {
+                 withSonarQubeEnv('sonarQube') {
+                     sh 'mvn sonar:sonar'
+                 }
+             }
+         }
+*/
+
+  stage("SonarQube Analysis") {
+            steps {
+                // Set Java 11 for this stage
+                tool name: 'JAVAA_HOME', type: 'jdk'
+                withEnv(["JAVAA_HOME=${tool name: 'JAVAA_HOME', type: 'jdk'}"]) {
+                    withSonarQubeEnv('sonarQube') {
+                        script {
+                            def scannerHome = tool 'SonarQubeScanner'
+                            withEnv(["PATH+SCANNER=${scannerHome}/bin"]) {
+                                sh '''
+                                    mvn sonar:sonar \
+                                        -Dsonar.java.binaries=target/classes
+                                '''
+                            }
                         }
-                    } else {
-                        // If the directory does not exist, perform the initial clone
-                        sh "git clone --branch ${env.GIT_BRANCH} https://mehdiaroua23:${env.GIT_CREDENTIALS}@${env.GIT_REPO_URL} ${REPO_DIR}"
                     }
                 }
             }
         }
-        stage('Clean and compile with Maven') {
-            steps {
-               dir(REPO_DIR) {
-                    sh 'mvn clean compile'
-                }
-            }
-        }
-        stage('Test with Maven') {
-            steps {
-               dir(REPO_DIR) {
-                    sh 'mvn test'
-                }
-            }
-        }
-        stage('Sonar test') {
-            steps {
-                dir(REPO_DIR) {
-                    withCredentials([usernamePassword(credentialsId: 'c96c8d35-a68e-4fdd-a1dc-04ed95ee56b0', usernameVariable: 'SONAR_USER', passwordVariable: 'SONAR_PASSWORD')]) {
-                        sh "mvn clean verify sonar:sonar -Dsonar.login=\$SONAR_USER -Dsonar.password=\$SONAR_PASSWORD"
+
+
+//***************************************************** BUILD FRONTEND - ANGULAR (PASSED)***************************/
+                stage('Checkout Frontend Repo') {
+                    steps {
+                        script {
+                            checkout([
+                                $class: 'GitSCM',
+                                branches: [[name: '*/master']],
+                                userRemoteConfigs: [[url: 'https://github.com/KoukaAzza/FrontDevops']]
+                            ])
+                        }
                     }
                 }
+
+                stage('Build Frontend') {
+                    steps {
+                        sh 'npm install'
+                        sh 'npm run ng build'
+                    }
+                }
+
+//******************************** *******DOCKER BUILD AND PUSH IMAGES (PASSED)**************************/
+
+
+                    //******************************** *************DOCKER BUILD AND PUSH BACKEND - SPRINGBOOT :latest  IMAGE**/
+
+            stage('Build and Push Backend Image') {
+                steps {
+                    script {
+                       
+                        checkout([
+                            $class: 'GitSCM',
+                            branches: [[name: '*/master']],
+                            userRemoteConfigs: [[url: 'https://github.com/KoukaAzza/SpringDevops']]
+                        ])
+                        
+                        // Authenticate with Docker Hub using credentials
+                        withCredentials([string(credentialsId: 'Docker', variable: 'password')]) {
+                            sh "docker login -u azzakouka -p azzaesprit159"
+                        }
+            
+                          // Build the backend Docker image
+                            def frontendImage = docker.build('azzakouka/spring', '-f /var/lib/jenkins/workspace/Devops/Dockerfile .')
+                            
+                            // Push the Docker image
+                            frontendImage.push()
+                        }
+                    }
+                }
+//****************************************************** DEPLOY TO NEXUS (PASSED)******************************************/
+
+               stage('Deploy to Nexus Repository') {
+             steps {
+               script {
+                     
+                         checkout([
+                             $class: 'GitSCM',
+                             branches: [[name: '*/master']],
+                             userRemoteConfigs: [[url: 'https://github.com/KoukaAzza/SpringDevops']]
+                         ])
+                        
+               
+                        withCredentials([usernamePassword(credentialsId: 'nexus3', passwordVariable: 'pwd', usernameVariable: 'name')]) {
+                              withEnv(["JAVA_HOME=${tool name: 'JAVA_HOME', type: 'jdk'}"]) {
+                 sh "mvn deploy -s /usr/share/maven/conf/settings.xml -Dusername=\$name -Dpassword=\$pwd"
+             }
+             }
             }
+           }
+         }
+
+          //**************************************** DOCKER BUILD AND PUSH FRONTEND - ANGULAR :frontend  IMAGE **********
+
+        stage('Build and Push Frontend Image') {
+    steps {
+        script {
+           
+            checkout([
+                $class: 'GitSCM',
+                branches: [[name: '*/master']],
+                userRemoteConfigs: [[url: 'https://github.com/KoukaAzza/FrontDevops']]
+            ])
+            
+          
+            withCredentials([string(credentialsId: 'Docker', variable: 'password')]) {
+                sh "docker login -u azzakouka -p azzaesprit159"
+            }
+            
+            // Build the backend Docker image
+            def backendImage = docker.build('azzakouka/angular-app', '-f Dockerfile .')
+            
+            // Push the Docker image
+            backendImage.push()
         }
     }
+}
+
+//*********************** ******************************************  DOCKER-COMPOSE (PASSED)****************/
+
+stage('Run Docker Compose') {
+    steps {
+         script {
+             checkout([
+                 $class: 'GitSCM',
+                 branches: [[name: '*/master']], 
+                 userRemoteConfigs: [[url: 'https://github.com/KoukaAzza/SpringDevops']]
+             ])
+
+             // Run the docker-compose command
+            sh 'docker compose up -d' 
+         }
+     }
+ }
+
+//******************************* SENDING EMAIL - Success while Build pipeline Success / Failure while Build pipeline fails
+}
+  
+  post {
+        success {
+            script {
+                SUCCESSFUL_STAGES = "${currentBuild.buildVariables.get('STAGE_NAME')}"
+                mail to: 'azza.kouka@esprit.tn',
+                subject: 'Jenkins Build pipeline: Success',
+                body: "Your pipeline build success. Stages built successfully: ${SUCCESSFUL_STAGES}. Thank you, go and check it\nAzza KOUKA"
+            }
+        }
+        failure {
+            script {
+                FAILED_STAGE = "${env.STAGE_NAME}"
+                mail to: 'azza.kouka@esprit.tn',
+                subject: 'Jenkins Build pipeline: Failure',
+                body: "Your pipeline build failed. The following stage failed: ${FAILED_STAGE}. Thank you, please check\nAzza KOUKA"
+            }
+        }
+  }
 }
