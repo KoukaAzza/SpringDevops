@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <dataset>
     <operator
-            ID_OPERATEUR="1"
-            fname="mahdi"
-            lname="mahdi"
-            password="ertydfgh"
+            ID_OPERATEUR ="1"
+            fname = "azza"
+            lname = "kouka"
+            password = "azza"
     />
 </dataset>

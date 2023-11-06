@@ -2,6 +2,7 @@ package tn.esprit.devops_project.services;
 
 import com.github.springtestdbunit.DbUnitTestExecutionListener;
 import com.github.springtestdbunit.annotation.DatabaseSetup;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,21 +43,25 @@ class ProductServiceImplTest {
     @DatabaseSetup("/data-set/stock-data.xml")
     void addProduct() {
         Product product = new Product();
-        product.setTitle("ORANGE");
+        product.setTitle("T-SHIRT");
         final Stock stock = this.stockService.retrieveStock(1L);
         product.setStock(stock);
         productService.addProduct(product,stock.getIdStock());
         final List<Product> AllProduct = this.productService.retreiveAllProduct();
         assertEquals(2, AllProduct.size());
         final Product produit = this.productService.retrieveProduct(2L);
-        assertEquals("ORANGE", produit.getTitle());
+        assertEquals("T-SHIRT", produit.getTitle());
+
+        assertThrows(NullPointerException.class, () -> {
+            productService.addProduct(product, -1L); // Use an ID that doesn't exist
+        });
     }
 
     @Test
     @DatabaseSetup("/data-set/product-data.xml")
     void retrieveProduct() {
         final Product product = this.productService.retrieveProduct(1L);
-        assertEquals("Fruit", product.getTitle());
+        assertEquals("PULL", product.getTitle());
     }
 
     @Test
@@ -79,8 +84,7 @@ class ProductServiceImplTest {
     void deleteProduct() {
         final Product product = this.productService.retrieveProduct(1L);
         productService.deleteProduct(product.getIdProduct());
-
-
+        assertEquals(1, product.getIdProduct());
     }
 
     @Test
@@ -97,6 +101,14 @@ class ProductServiceImplTest {
     void retrieveProduct_nullId() {
         Exception exception = assertThrows(NullPointerException.class, () -> {
             final Product product = this.productService.retrieveProduct(100L);
+        });
+    }
+
+    @Test
+    @DatabaseSetup("/data-set/stock-data.xml")
+    void retrieveStock_nullId() {
+        Exception exception = assertThrows(NullPointerException.class, () -> {
+            final Stock stock = this.stockService.retrieveStock(100L);
         });
     }
 }

@@ -2,10 +2,8 @@
 <dataset>
     <product
             ID_PRODUCT="1"
-            title="Fruit"
-            price="2.5"
-            quantity="45"
-
+            title="PULL"
+            price="20"
+            quantity="70"
     />
-
 </dataset>

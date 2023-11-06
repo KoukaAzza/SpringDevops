@@ -44,24 +44,24 @@ class SupplierServiceImplTest {
     void addSupplier() {
 
         Supplier supplier = new Supplier();
-        supplier.setLabel("hamma");
+        supplier.setLabel("azza");
         supplierService.addSupplier(supplier);
 
         final List<Supplier> AllSuppliers = this.supplierService.retrieveAllSuppliers();
         assertEquals(2,AllSuppliers.size());
 
         final Supplier addedSupplier = this.supplierService.retrieveSupplier(2L);
-        assertEquals("hamma", addedSupplier.getLabel());
+        assertEquals("azza", addedSupplier.getLabel());
     }
 
     @Test
     @DatabaseSetup("/data-set/supplier-data.xml")
     void updateSupplier() {
         Supplier supplier = this.supplierService.retrieveSupplier(1L);
-        supplier.setLabel("UpdatedLabel");
+        supplier.setLabel("yosr");
         supplierService.updateSupplier(supplier);
         Supplier updateSupplier = this.supplierService.retrieveSupplier(1L);
-        assertEquals("UpdatedLabel", updateSupplier.getLabel());
+        assertEquals("yosr", updateSupplier.getLabel());
     }
 
     @Test
@@ -69,13 +69,14 @@ class SupplierServiceImplTest {
     void deleteSupplier() {
         final Supplier supplier = this.supplierService.retrieveSupplier(1L);
         supplierService.deleteSupplier(supplier.getIdSupplier());
+        assertEquals(1, supplier.getIdSupplier());
     }
 
     @Test
     @DatabaseSetup("/data-set/supplier-data.xml")
     void retrieveSupplier() {
         final Supplier supplier = this.supplierService.retrieveSupplier(1L);
-        assertEquals("SUPP", supplier.getLabel());
+        assertEquals("kouka", supplier.getLabel());
     }
     @Test
     @DatabaseSetup("/data-set/supplier-data.xml")
