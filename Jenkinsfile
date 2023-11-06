@@ -37,7 +37,7 @@ pipeline {
             steps{
                    jacoco(execPattern: '**/target/jacoco.exec')
     }
-        }
+        } 
 
 //********************* ***************************SOANRQUBE ANALYSIS -- (PASSED)**********************
        /*    stage("SonarQube analysis") {
