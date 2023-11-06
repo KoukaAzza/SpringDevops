@@ -184,10 +184,6 @@ stage('Run Docker Compose') {
      }
  }
 
-        
-
-
- 
 //******************************* SENDING EMAIL - Success while Build pipeline Success / Failure while Build pipeline fails
 }
   
@@ -208,10 +204,5 @@ stage('Run Docker Compose') {
                 body: "Your pipeline build failed. The following stage failed: ${FAILED_STAGE}. Thank you, please check\nAzza KOUKA"
             }
         }
-    }
-  
-  
-  
- 
-
+  }
 }
